@@ -10,7 +10,7 @@ module Marvin_ROM (
 );
     reg [31:0] rom [0:255];
 
-    initial $readmemh({`HEX_FILES_PATH, "00_fsm2.hex"}, rom);
+    initial $readmemh({`HEX_FILES_PATH, "00_fsm3.hex"}, rom);
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin

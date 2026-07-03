@@ -19,18 +19,16 @@ initial begin
     for (i = 0; i < 32; i = i + 1) regFile[i] = 32'b0;
 end
 assign mem_addr = PC;
-assign mem_valid = state[S_FETCH_bit] | state[S_WAIT_bit];
+assign mem_valid = state[S_FETCH_bit];
 assign dbg_IR   = IR;
 
 // FSM
-localparam S_FETCH   = 3'b001,
-           S_WAIT    = 3'b010,
-           S_EXECUTE = 3'b100;
+localparam S_FETCH   = 2'b01,
+           S_EXECUTE = 2'b10;
 
 localparam S_FETCH_bit   = 0,
-           S_WAIT_bit    = 1,
-           S_EXECUTE_bit = 2;
-reg [2:0] state;
+           S_EXECUTE_bit = 1;
+reg [1:0] state;
 
 
 always @(posedge clk or negedge rst_n) begin
@@ -40,13 +38,9 @@ always @(posedge clk or negedge rst_n) begin
         IR <= 32'b0;
     end else begin
         case (1'b1)
-            state[S_FETCH_bit]: begin          // Presents mem_addr = PC
-                state <= S_WAIT;     
-            end
-            
-            state[S_WAIT_bit]: begin
+            state[S_FETCH_bit]: begin
                 if (mem_ready) begin
-                    IR <= mem_rdata;    // Now mem_rdata is stable (1 cycle memory latency)
+                    IR <= mem_rdata;    // Now this state consumes two cycles
                     state <= S_EXECUTE;
                 end
             end
