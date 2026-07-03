@@ -3,6 +3,8 @@ module Marvin_CPU (
     input  wire        rst_n,
     output wire [31:0] mem_addr,
     input  wire [31:0] mem_rdata,
+    output wire        mem_valid,
+    input  wire        mem_ready,
     output wire [31:0] dbg_IR
 );
 
@@ -17,14 +19,19 @@ initial begin
     for (i = 0; i < 32; i = i + 1) regFile[i] = 32'b0;
 end
 assign mem_addr = PC;
+assign mem_valid = state[S_FETCH_bit] | state[S_WAIT_bit];
 assign dbg_IR   = IR;
 
-
 // FSM
-localparam S_FETCH   = 2'd0,
-           S_WAIT    = 2'd1,
-           S_EXECUTE = 2'd2;
-reg [1:0] state;
+localparam S_FETCH   = 3'b001,
+           S_WAIT    = 3'b010,
+           S_EXECUTE = 3'b100;
+
+localparam S_FETCH_bit   = 0,
+           S_WAIT_bit    = 1,
+           S_EXECUTE_bit = 2;
+reg [2:0] state;
+
 
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
@@ -32,17 +39,19 @@ always @(posedge clk or negedge rst_n) begin
         PC <= 32'b0;
         IR <= 32'b0;
     end else begin
-        case (state)
-            S_FETCH: begin          // Presents mem_addr = PC
+        case (1'b1)
+            state[S_FETCH_bit]: begin          // Presents mem_addr = PC
                 state <= S_WAIT;     
             end
             
-            S_WAIT: begin
-                IR <= mem_rdata;    // Now mem_rdata is stable (1 cycle memory latency)
-                state <= S_EXECUTE;
+            state[S_WAIT_bit]: begin
+                if (mem_ready) begin
+                    IR <= mem_rdata;    // Now mem_rdata is stable (1 cycle memory latency)
+                    state <= S_EXECUTE;
+                end
             end
 
-            S_EXECUTE: begin
+            state[S_EXECUTE_bit]: begin
                 PC <= PC + 4;
                 state <= S_FETCH;
             end

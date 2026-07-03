@@ -9,10 +9,11 @@ MaRVin CPU is my RV32I RISC-V CPU version.
 4. `RV32IMAC` 93 instructions (+34)
 
 ## TODO:
-* Use valid-ready memory
-* Change FSM to one-hot
+* collapse fetch and wait
+* LUI instruction
+
 
 ## History
 
 * `00_fsm1` First FSM version for 1 cycle memory latency.
-  
+* `00_fsm2` One-hot FSM with valid-ready.
